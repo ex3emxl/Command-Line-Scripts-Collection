@@ -4,3 +4,6 @@ logs
 
 # Dir
 .idea/
+
+# Files
+*.xml
