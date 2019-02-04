@@ -39,6 +39,22 @@ class FileCreator
         $this->nodeCount = $nodeCount;
     }
 
+    /**
+     *
+     */
+    private function getMemoryLimit()
+    {
+        $memory_limit = ini_get('memory_limit');
+        if (preg_match('/^(\d+)(.)$/', $memory_limit, $matches)) {
+            if ($matches[2] == 'M') {
+                $memory_limit = $matches[1] * 1024 * 1024; // nnnM -> nnn MB
+            } else if ($matches[2] == 'K') {
+                $memory_limit = $matches[1] * 1024; // nnnK -> nnn KB
+            }
+        }
+        return $memory_limit;
+    }
+
 
     /**
      * Creates and writes data in to the file
@@ -46,25 +62,33 @@ class FileCreator
      *
      * @param string The local path of the target file.
      *
-     * @return Generator|Object[]
+     * @return Generator
      */
     private function createTheFile($path)
     {
+        $memory_border = round($this->getMemoryLimit() / 5);
         $handleNew = fopen($path, "wb");
         $xml = '<?xml version="1.0" encoding="utf-8"?>
     <Root>
         <Users>';
         try {
             for ($iterator = 0; $iterator < $this->nodeCount; $iterator++) {
-                $age = substr((string)$iterator, -2);
+                $id = $iterator + 1;
+                $age = substr((string)$id, -2);
                 $xml .= "
             <user>
-                <id>$iterator</id>
+                <id>$id</id>
                 <name>User One</name>
                 <email>user@mail.com</email>
                 <age>$age</age>
                 <Ratings>6.2</Ratings>
             </user>";
+                if ($memory_border < memory_get_usage()) {
+                    fwrite($handleNew, $xml);
+                    fclose($handleNew);
+                    $handleNew = fopen($path, "ab");
+                    $xml = '';
+                }
                 yield;
             }
         } catch (Exception $e) {
@@ -89,5 +113,25 @@ class FileCreator
 
 }
 
-// TODO: Maximum execution time 180sec now
-// TODO: Allowed memory size of 1610612736 bytes exhausted
+$testFile = new FileCreator(100);
+$testFile->run();
+
+/**
+ * @param $bytes
+ * @param int $precision
+ * @return string
+ */
+function formatBytes($bytes, $precision = 2)
+{
+    $units = array("b", "kb", "mb", "gb", "tb");
+
+    $bytes = max($bytes, 0);
+    $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+    $pow = min($pow, count($units) - 1);
+
+    $bytes /= (1 << (10 * $pow));
+
+    return round($bytes, $precision) . " " . $units[$pow];
+}
+
+print formatBytes(memory_get_peak_usage());
