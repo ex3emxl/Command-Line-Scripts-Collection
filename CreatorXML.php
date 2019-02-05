@@ -11,7 +11,7 @@
  *
  * @since 1.0.0
  */
-class FileCreator
+class CreatorXML
 {
     /**
      * Path for target file
@@ -106,14 +106,16 @@ class FileCreator
      */
     public function run()
     {
+        $start = microtime(true);
         foreach ($this->createTheFile($this->path) as $line) {
 //            var_dump($line);
         }
+        echo 'Время выполнения скрипта: '.round(microtime(true) - $start, 4).' сек.';
     }
 
 }
 
-$testFile = new FileCreator(100);
+$testFile = new CreatorXML(20000);
 $testFile->run();
 
 /**
@@ -134,4 +136,4 @@ function formatBytes($bytes, $precision = 2)
     return round($bytes, $precision) . " " . $units[$pow];
 }
 
-print formatBytes(memory_get_peak_usage());
+//print formatBytes(memory_get_peak_usage());
