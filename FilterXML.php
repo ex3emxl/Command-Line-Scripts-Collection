@@ -45,10 +45,16 @@ class FilterXML
      */
     function __construct($params)
     {
-        // TODO: Check input params is_array etc.
-        $this->path = $params['path'];
-        $this->lowAge = $params['lowAge'];
-        $this->highAge = $params['highAge'];
+        if (
+            is_array($params)
+            && array_key_exists('path', $params)
+            && array_key_exists('lowAge', $params)
+            && array_key_exists('highAge', $params)
+        ) {
+            $this->path = $params['path'];
+            $this->lowAge = $params['lowAge'];
+            $this->highAge = $params['highAge'];
+        }
     }
 
     /**
@@ -152,7 +158,11 @@ class CollectDataFromCommandLine
      *           ['lowAge']      int Low limit of Age range.
      *           ['width']       int High limit of Age range.
      */
-    private $collection = array();
+    private $collection = array(
+        'path' => '',
+        'lowAge' => '',
+        'width' => '',
+    );
 
     /**
      * CollectDataFromCommandLine constructor.
